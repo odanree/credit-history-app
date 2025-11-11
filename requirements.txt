@@ -1,0 +1,14 @@
+# Plaid API
+plaid-python>=14.0.0
+
+# HTTP Requests
+requests>=2.31.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# Optional: Data handling
+pandas>=2.0.0
+
+# Optional: Export formats
+openpyxl>=3.1.0
