@@ -245,6 +245,44 @@ When adding new features:
 - Update API comparison table if relevant
 - Add troubleshooting tips
 
+### Documentation Updates for Major Changes
+**IMPORTANT:** Always update root-level documentation when making significant changes:
+
+1. **Update README.md** when:
+   - Adding new modules or files
+   - Changing API integrations or endpoints
+   - Modifying setup/installation steps
+   - Adding new dependencies
+   - Changing environment variables
+   - Adding new features users will interact with
+   - Modifying output formats or data structures
+
+2. **Update .github/copilot-instructions.md** when:
+   - Changing project architecture or file structure
+   - Adding new design patterns or conventions
+   - Implementing new security measures
+   - Adding new APIs or external services
+   - Changing error handling strategies
+   - Modifying data flow between modules
+   - Adding new compliance requirements
+
+3. **What to Document:**
+   - **Architecture changes**: New modules, refactored components, data flow changes
+   - **API changes**: New endpoints, changed request/response formats, authentication updates
+   - **Breaking changes**: Changes that require users to update their code or configuration
+   - **New patterns**: Reusable code patterns that should be followed project-wide
+   - **Security updates**: New security measures, credential handling changes
+   - **Configuration changes**: New environment variables, settings, or config files
+
+4. **Documentation Standards:**
+   - Keep README.md user-focused (how to use)
+   - Keep copilot-instructions.md developer-focused (how to build)
+   - Include code examples for new features
+   - Add troubleshooting for common issues
+   - Update table of contents if applicable
+   - Mark deprecated features clearly
+   - Include migration guides for breaking changes
+
 ## Debugging Tips
 
 ### Common Issues
