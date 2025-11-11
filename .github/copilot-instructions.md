@@ -350,6 +350,71 @@ When adding new features:
 - [PEP 8 Style Guide](https://peps.python.org/pep-0008/)
 - [Python Type Hints](https://docs.python.org/3/library/typing.html)
 
+## Git Commit Conventions
+
+### Use Conventional Commits
+Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification for all commit messages.
+
+**Format:**
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+**Types:**
+- `feat`: New feature for the user
+- `fix`: Bug fix
+- `docs`: Documentation only changes
+- `style`: Code style changes (formatting, missing semicolons, etc.)
+- `refactor`: Code change that neither fixes a bug nor adds a feature
+- `perf`: Performance improvements
+- `test`: Adding or updating tests
+- `build`: Changes to build system or dependencies
+- `ci`: Changes to CI configuration files and scripts
+- `chore`: Other changes that don't modify src or test files
+- `revert`: Reverts a previous commit
+
+**Scopes (optional):**
+- `plaid`: Plaid API integration
+- `experian`: Experian API integration
+- `auth`: Authentication/authorization
+- `api`: General API changes
+- `ui`: User interface
+- `config`: Configuration files
+- `deps`: Dependencies
+
+**Examples:**
+```bash
+feat(plaid): add support for investment accounts
+fix(experian): handle expired OAuth tokens correctly
+docs(readme): update API key setup instructions
+refactor(main): simplify credit summary calculation
+perf(plaid): cache transaction responses
+test(experian): add unit tests for credit score parsing
+build(deps): upgrade plaid-python to v15.0.0
+chore(gitignore): add .vscode to ignored files
+```
+
+**Breaking Changes:**
+Add `BREAKING CHANGE:` in the footer or use `!` after type/scope:
+```bash
+feat(api)!: change credit summary response format
+
+BREAKING CHANGE: credit_summary now returns utilization as decimal instead of percentage
+```
+
+**Best Practices:**
+- Use imperative mood in subject ("add" not "added" or "adds")
+- Don't capitalize first letter of subject
+- No period at the end of subject
+- Keep subject under 50 characters
+- Separate subject from body with blank line
+- Wrap body at 72 characters
+- Use body to explain what and why, not how
+
 ## Contact & Support
 
 For questions about:
