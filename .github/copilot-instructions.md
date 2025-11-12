@@ -415,9 +415,195 @@ BREAKING CHANGE: credit_summary now returns utilization as decimal instead of pe
 - Wrap body at 72 characters
 - Use body to explain what and why, not how
 
+## Testing Guidelines
+
+### Test Coverage Requirements
+- **Minimum Coverage:** 70% for core business logic
+- **Critical Paths:** 90%+ coverage (authentication, payment processing, data fetching)
+- **New Features:** Must include tests before merging
+
+### Testing Framework
+- **pytest** - Primary testing framework
+- **pytest-cov** - Coverage reporting
+- **pytest-mock** - Mocking external dependencies
+- **pytest-flask** - Flask application testing
+
+### Test Organization
+
+```
+tests/
+├── conftest.py                  # Shared fixtures and configuration
+├── test_plaid_integration.py    # Plaid API client tests
+├── test_experian_integration.py # Experian API client tests
+└── test_app.py                  # Flask application tests
+```
+
+### Writing Tests
+
+**1. Unit Tests (Preferred)**
+- Test individual functions/methods in isolation
+- Mock all external dependencies (APIs, databases, file I/O)
+- Fast execution (< 1 second per test)
+- No network calls or file system access
+
+```python
+@patch('src.integrations.plaid_integration.plaid_api.PlaidApi')
+def test_get_credit_card_data_success(mock_plaid_api, plaid_client):
+    """Test successful credit card data retrieval"""
+    # Mock the API response
+    mock_response = MagicMock()
+    mock_response.to_dict.return_value = {'cards': [...]}
+    
+    mock_plaid_api.return_value.accounts_get.return_value = mock_response
+    
+    result = plaid_client.get_credit_card_data('test_token')
+    
+    assert 'cards' in result
+    assert len(result['cards']) > 0
+```
+
+**2. Mocking External APIs**
+- **Always mock** Plaid and Experian API calls in tests
+- Don't hit real APIs (costs money, rate limits, unreliable)
+- Use `unittest.mock.patch` or `pytest-mock`
+- Return realistic test data matching actual API responses
+
+```python
+# Good - mocked API call
+@patch('requests.post')
+def test_experian_auth(mock_post):
+    mock_post.return_value.json.return_value = {'access_token': 'test_token'}
+    # Test code here
+
+# Bad - real API call
+def test_experian_auth():
+    response = requests.post(EXPERIAN_URL, ...)  # DON'T DO THIS
+```
+
+**3. Test Naming Conventions**
+- Use descriptive names: `test_<function>_<scenario>_<expected_result>`
+- Examples:
+  - `test_get_credit_data_success()`
+  - `test_get_credit_data_missing_token_returns_error()`
+  - `test_calculate_utilization_zero_limit_returns_zero()`
+
+**4. Test Structure (Arrange-Act-Assert)**
+```python
+def test_calculate_utilization():
+    # Arrange - set up test data
+    balance = 1000
+    limit = 5000
+    
+    # Act - call the function
+    result = calculate_utilization(balance, limit)
+    
+    # Assert - verify the result
+    assert result == 20.0
+```
+
+**5. Testing Flask Routes**
+```python
+def test_dashboard_route(client):
+    """Test dashboard renders successfully"""
+    response = client.get('/')
+    
+    assert response.status_code == 200
+    assert b'Credit Dashboard' in response.data
+```
+
+**6. Edge Cases to Test**
+- Null/None inputs
+- Empty lists/dicts
+- Zero values
+- Extremely large numbers
+- Invalid data types
+- API errors (401, 500, timeout)
+- Network failures
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=src --cov-report=html
+
+# Run specific test file
+pytest tests/test_plaid_integration.py
+
+# Run tests matching pattern
+pytest -k "test_plaid"
+
+# Run with verbose output
+pytest -v
+
+# Stop on first failure
+pytest -x
+```
+
+### Coverage Reporting
+
+```bash
+# Generate coverage report
+pytest --cov=src --cov-report=term-missing
+
+# Generate HTML report
+pytest --cov=src --cov-report=html
+# Open htmlcov/index.html in browser
+
+# View coverage for specific file
+pytest --cov=src.integrations.plaid_integration --cov-report=term
+```
+
+### CI/CD Integration
+- Tests run automatically on every Pull Request
+- Coverage reports uploaded to Codecov
+- PRs should not decrease overall coverage
+- Failing tests block merge (unless overridden)
+
+### What NOT to Test
+- Third-party library internals (trust pytest, Flask, Plaid SDK work)
+- Simple getters/setters without logic
+- Auto-generated code
+- Configuration files
+
+### Test-Driven Development (TDD) - Recommended
+1. Write failing test first
+2. Write minimal code to make it pass
+3. Refactor code
+4. Repeat
+
+### Common Pitfalls to Avoid
+- ❌ Testing implementation instead of behavior
+- ❌ Not mocking external dependencies
+- ❌ Overly complex test setup
+- ❌ Tests that depend on each other
+- ❌ Ignoring flaky tests
+- ❌ Not testing error cases
+- ❌ Hard-coding test data that breaks easily
+
+### When Adding Tests for New Features
+1. **Before writing code:** Write test cases for expected behavior
+2. **Mock dependencies:** External APIs, databases, file I/O
+3. **Test happy path:** Normal successful execution
+4. **Test error cases:** Invalid input, API failures, edge cases
+5. **Check coverage:** Aim for 80%+ on new code
+6. **Update CI:** Ensure tests run in GitHub Actions
+
+### Example Test Checklist
+- [ ] Tests pass locally (`pytest`)
+- [ ] Coverage > 70% for new code
+- [ ] All external APIs mocked
+- [ ] Edge cases covered
+- [ ] Error handling tested
+- [ ] Tests run in CI/CD
+- [ ] No flaky tests (random failures)
+
 ## Contact & Support
 
 For questions about:
 - Plaid API: https://support.plaid.com/
 - Experian API: developer@experian.com
 - Code issues: Check README.md troubleshooting section
+

@@ -7,7 +7,7 @@ import os
 import requests
 import base64
 from typing import Dict, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class ExperianClient:

@@ -1,5 +1,10 @@
 # Credit History Application
 
+[![codecov](https://codecov.io/gh/odanree/credit-history-app/branch/main/graph/badge.svg)](https://codecov.io/gh/odanree/credit-history-app)
+[![Tests](https://github.com/odanree/credit-history-app/workflows/Pull%20Request%20CI/badge.svg)](https://github.com/odanree/credit-history-app/actions)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 A comprehensive credit monitoring application integrating Plaid (transaction data) and Experian (credit reports).
 
 ## 🚀 Quick Start
@@ -75,6 +80,53 @@ credit-history-app/
 - **Plaid API** - Financial data
 - **Experian API** - Credit reports
 - **Gunicorn** - Production server
+- **pytest** - Testing framework
+
+## 🧪 Testing
+
+### Run Tests
+
+```bash
+# Activate virtual environment
+.\.venv\Scripts\Activate.ps1
+
+# Install test dependencies
+pip install -r requirements.txt
+
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=src --cov-report=html
+
+# Run specific test file
+pytest tests/test_plaid_integration.py
+
+# Run tests matching pattern
+pytest -k "test_plaid"
+```
+
+### View Coverage Report
+
+```bash
+# Generate HTML coverage report
+pytest --cov=src --cov-report=html
+
+# Open in browser
+start htmlcov/index.html
+```
+
+### Test Structure
+
+```
+tests/
+├── conftest.py                  # Pytest configuration & fixtures
+├── test_plaid_integration.py    # Plaid API tests (mocked)
+├── test_experian_integration.py # Experian API tests (mocked)
+└── test_app.py                  # Flask app tests
+```
+
+**Coverage Goal:** 70%+ for core business logic
 
 ## 🛠️ Development
 
