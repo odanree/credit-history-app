@@ -33,24 +33,31 @@ class TestFlaskApp:
         assert app.config['TESTING']
     
     @patch('src.app.get_credit_data')
-    def test_dashboard_route_success(self, mock_get_data, client):
+    @patch('src.app.analyze_transactions')
+    def test_dashboard_route_success(self, mock_analyze, mock_get_data, client):
         """Test dashboard route with successful data fetch"""
-        # Mock credit data
+        # Mock credit data matching actual API structure
         mock_get_data.return_value = {
-            'cards': [
+            'credit_cards': [
                 {
                     'name': 'Test Card',
-                    'balance': 1000,
-                    'limit': 5000,
-                    'utilization': 20.0
+                    'current_balance': 1000,
+                    'credit_limit': 5000,
+                    'utilization_percent': 20.0
                 }
             ],
-            'summary': {
-                'total_balance': 1000,
-                'total_limit': 5000,
-                'average_utilization': 20.0
-            },
+            'total_cards': 1,
+            'total_balance': 1000,
+            'total_limit': 5000,
             'transactions': []
+        }
+        
+        # Mock analysis data to match template expectations
+        mock_analyze.return_value = {
+            'monthly_spending': {},
+            'top_categories': [('Food', 100.00), ('Transport', 50.00)],
+            'top_merchants': [('Merchant A', 75.00), ('Merchant B', 45.00)],
+            'total_spent': 150.00
         }
         
         response = client.get('/')
@@ -66,15 +73,18 @@ class TestFlaskApp:
         
         response = client.get('/')
         
-        assert response.status_code == 200
-        # Should still render page, maybe with error message
+        # Should return 500 error with error message
+        assert response.status_code == 500
+        assert b'Error loading data' in response.data
     
     @patch('src.app.get_credit_data')
     def test_api_data_endpoint(self, mock_get_data, client):
         """Test /api/data endpoint"""
         mock_data = {
-            'cards': [],
-            'summary': {},
+            'credit_cards': [],
+            'total_cards': 0,
+            'total_balance': 0,
+            'total_limit': 0,
             'transactions': []
         }
         mock_get_data.return_value = mock_data
@@ -85,22 +95,19 @@ class TestFlaskApp:
         assert response.content_type == 'application/json'
         
         data = json.loads(response.data)
-        assert 'cards' in data
-        assert 'summary' in data
+        assert 'credit_cards' in data
+        assert 'total_balance' in data
         assert 'transactions' in data
     
     def test_analyze_transactions_empty(self):
         """Test transaction analysis with empty list"""
         result = analyze_transactions([])
         
-        assert result['by_month'] == {}
-        assert result['by_category'] == {}
-        assert result['by_merchant'] == {}
+        # Empty list returns empty dict
+        assert result == {}
     
     def test_analyze_transactions_with_data(self):
         """Test transaction analysis with sample data"""
-        from datetime import datetime
-        
         transactions = [
             {
                 'date': '2025-11-10',
@@ -124,15 +131,23 @@ class TestFlaskApp:
         
         result = analyze_transactions(transactions)
         
-        # Check by_month
-        assert len(result['by_month']) > 0
+        # Check structure
+        assert 'monthly_spending' in result
+        assert 'top_categories' in result
+        assert 'top_merchants' in result
+        assert 'total_spent' in result
         
-        # Check by_category
-        assert 'Food' in result['by_category'] or 'Restaurants' in result['by_category']
+        # Check monthly spending
+        assert '2025-11' in result['monthly_spending']
+        assert '2025-10' in result['monthly_spending']
         
-        # Check by_merchant
-        assert 'Restaurant A' in result['by_merchant']
-        assert result['by_merchant']['Restaurant A'] == 50.00
+        # Check totals
+        assert result['total_spent'] == 180.00  # 50 + 30 + 100
+        
+        # Check top merchants
+        merchants = dict(result['top_merchants'])
+        assert 'Restaurant A' in merchants
+        assert merchants['Restaurant A'] == 50.00
     
     @patch.dict(os.environ, {
         'PLAID_CLIENT_ID': 'test_id',
@@ -170,3 +185,99 @@ class TestFlaskApp:
         
         # Either 200 (exists) or 404 (doesn't exist yet)
         assert response.status_code in [200, 404]
+
+
+class TestAnalyzeTransactions:
+    """Additional tests for transaction analysis"""
+    
+    def test_analyze_with_datetime_objects(self):
+        """Test transaction analysis with datetime objects"""
+        from datetime import datetime
+        
+        transactions = [
+            {
+                'date': datetime(2025, 11, 10),
+                'amount': 50.00,
+                'category': ['Food'],
+                'name': 'Test'
+            }
+        ]
+        
+        result = analyze_transactions(transactions)
+        
+        assert '2025-11' in result['monthly_spending']
+        assert result['total_spent'] == 50.00
+    
+    def test_analyze_without_category(self):
+        """Test transaction without category"""
+        transactions = [
+            {
+                'date': '2025-11-10',
+                'amount': 50.00,
+                'name': 'Test Merchant'
+            }
+        ]
+        
+        result = analyze_transactions(transactions)
+        
+        # Should be categorized as 'Other'
+        categories = dict(result['top_categories'])
+        assert 'Other' in categories
+    
+    def test_analyze_with_nested_categories(self):
+        """Test transaction with multiple category levels"""
+        transactions = [
+            {
+                'date': '2025-11-10',
+                'amount': 100.00,
+                'category': ['Food', 'Restaurants', 'Fast Food'],
+                'name': 'Restaurant'
+            }
+        ]
+        
+        result = analyze_transactions(transactions)
+        
+        # Should use first category level
+        categories = dict(result['top_categories'])
+        assert 'Food' in categories
+        assert categories['Food'] == 100.00
+
+
+class TestGetCreditData:
+    """Additional tests for get_credit_data function"""
+    
+    @patch.dict(os.environ, {}, clear=True)
+    def test_missing_all_credentials(self):
+        """Test when all environment variables are missing"""
+        result = get_credit_data()
+        
+        assert result is None
+    
+    @patch.dict(os.environ, {
+        'PLAID_CLIENT_ID': 'test',
+        'PLAID_SECRET': 'test',
+        'PLAID_ENV': 'sandbox'
+        # Missing PLAID_ACCESS_TOKEN
+    })
+    def test_missing_access_token_only(self):
+        """Test when only access token is missing"""
+        result = get_credit_data()
+        
+        assert result is None
+    
+    @patch.dict(os.environ, {
+        'PLAID_CLIENT_ID': 'test_id',
+        'PLAID_SECRET': 'test_secret',
+        'PLAID_ENV': 'sandbox',
+        'PLAID_ACCESS_TOKEN': 'test_token'
+    })
+    @patch('src.app.PlaidClient')
+    def test_plaid_client_exception(self, mock_plaid_client):
+        """Test when PlaidClient raises exception"""
+        mock_client_instance = MagicMock()
+        mock_client_instance.get_credit_card_data.side_effect = Exception("API Error")
+        mock_plaid_client.return_value = mock_client_instance
+        
+        result = get_credit_data()
+        
+        assert result is None
