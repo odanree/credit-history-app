@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: credit-history-app
+    env: python
+    region: oregon
+    plan: free
+    branch: master
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: PLAID_CLIENT_ID
+        sync: false
+      - key: PLAID_SECRET
+        sync: false
+      - key: PLAID_ENV
+        value: sandbox
+      - key: PLAID_ACCESS_TOKEN
+        sync: false
+      - key: EXPERIAN_CLIENT_ID
+        sync: false
+      - key: EXPERIAN_CLIENT_SECRET
+        sync: false
+      - key: EXPERIAN_ENV
+        value: sandbox

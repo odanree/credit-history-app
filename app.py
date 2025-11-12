@@ -114,7 +114,12 @@ def api_transactions():
     return jsonify({'error': 'Failed to fetch data'}), 500
 
 if __name__ == '__main__':
+    # Local development
     print("\n🚀 Starting Credit History Dashboard...")
     print("📊 Open your browser to: http://localhost:5001")
     print("Press Ctrl+C to stop\n")
     app.run(debug=True, port=5001)
+else:
+    # Production (Render/Gunicorn)
+    # Set Flask to production mode
+    app.config['DEBUG'] = False
