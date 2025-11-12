@@ -57,7 +57,7 @@ If you don't use `render.yaml`:
 1. **Create Web Service**
    - Runtime: Python 3
    - Build Command: `pip install -r requirements.txt`
-   - Start Command: `gunicorn app:app`
+   - Start Command: `gunicorn src.app:app`
 
 2. **Set Environment Variables** (same as above)
 
