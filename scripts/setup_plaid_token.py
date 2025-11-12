@@ -3,6 +3,7 @@ Get Plaid Access Token for Sandbox Testing
 This script helps you complete the Plaid Link flow to get an access token
 """
 import os
+import sys
 from dotenv import load_dotenv
 import plaid
 from plaid.api import plaid_api
@@ -13,6 +14,8 @@ from plaid.model.country_code import CountryCode
 from plaid.model.sandbox_public_token_create_request import SandboxPublicTokenCreateRequest
 from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest
 
+# Add parent directory to path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 load_dotenv()
 
 # Initialize Plaid client

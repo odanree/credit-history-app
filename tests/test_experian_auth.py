@@ -2,12 +2,15 @@
 Test Experian API connectivity with different authentication methods
 """
 import os
+import sys
 import requests
 import base64
 from dotenv import load_dotenv
 
-load_dotenv()
+# Add parent directory to path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+load_dotenv()
 client_id = os.getenv('EXPERIAN_CLIENT_ID')
 client_secret = os.getenv('EXPERIAN_CLIENT_SECRET')
 
