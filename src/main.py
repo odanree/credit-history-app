@@ -4,10 +4,15 @@ Provides complete credit history including transactions and credit reports
 """
 
 import os
+import sys
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
-from plaid_integration import PlaidClient
-from experian_integration import ExperianClient
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from src.integrations.plaid_integration import PlaidClient
+from src.integrations.experian_integration import ExperianClient
 import json
 
 

@@ -5,10 +5,15 @@ Displays Plaid transaction data in a web interface
 from flask import Flask, render_template, jsonify
 import json
 import os
+import sys
 from datetime import datetime
 from collections import defaultdict
 from dotenv import load_dotenv
-from plaid_integration import PlaidClient
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from src.integrations.plaid_integration import PlaidClient
 
 load_dotenv()
 

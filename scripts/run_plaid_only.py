@@ -4,9 +4,14 @@ Use this while troubleshooting Experian API access
 """
 
 import os
+import sys
 from datetime import datetime
 from dotenv import load_dotenv
-from plaid_integration import PlaidClient
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from src.integrations.plaid_integration import PlaidClient
 import json
 
 

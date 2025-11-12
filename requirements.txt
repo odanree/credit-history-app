@@ -18,3 +18,9 @@ pandas>=2.0.0
 
 # Optional: Export formats
 openpyxl>=3.1.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-mock>=3.12.0
+pytest-flask>=1.3.0
