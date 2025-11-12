@@ -13,29 +13,36 @@ from datetime import datetime
 class ExperianClient:
     """Client for interacting with Experian Connect API"""
     
-    def __init__(self, client_id: str, client_secret: str, environment: str = "sandbox"):
+    def __init__(self, client_id: str, client_secret: str, username: str = None, password: str = None, environment: str = "sandbox"):
         """
         Initialize Experian client
         
         Args:
             client_id: Your Experian client ID
             client_secret: Your Experian client secret
+            username: Your Experian developer portal username
+            password: Your Experian developer portal password
             environment: 'sandbox' or 'production'
         """
         self.client_id = client_id
         self.client_secret = client_secret
+        self.username = username
+        self.password = password
         
+        # Updated base URLs for Experian APIs
         self.base_urls = {
             'sandbox': 'https://sandbox-us-api.experian.com',
             'production': 'https://us-api.experian.com'
         }
         self.base_url = self.base_urls.get(environment, self.base_urls['sandbox'])
+        self.environment = environment
         self.access_token = None
         self.token_expiry = None
     
     def _get_access_token(self) -> str:
         """
         Get OAuth access token for API calls
+        Experian uses OAuth 2.0 password flow with Basic Auth for client credentials
         
         Returns:
             Access token string
@@ -48,16 +55,20 @@ class ExperianClient:
         # Request new token
         auth_url = f"{self.base_url}/oauth2/v1/token"
         
-        # Create Basic Auth header
+        # Client credentials go in Basic Auth header
         credentials = f"{self.client_id}:{self.client_secret}"
         encoded_credentials = base64.b64encode(credentials.encode()).decode()
         
         headers = {
-            'Content-Type': 'application/json'
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': f'Basic {encoded_credentials}'
         }
         
-        # Experian API credentials format
+        # Username/password AND client credentials in the body
         payload = {
+            'username': self.username,
+            'password': self.password,
             'client_id': self.client_id,
             'client_secret': self.client_secret
         }
@@ -75,7 +86,7 @@ class ExperianClient:
             
             self.access_token = token_data['access_token']
             # Set expiry to 5 minutes before actual expiry
-            expires_in = token_data.get('expires_in', 3600) - 300
+            expires_in = int(token_data.get('expires_in', 3600)) - 300
             self.token_expiry = datetime.now() + timedelta(seconds=expires_in)
             
             return self.access_token
@@ -112,24 +123,65 @@ class ExperianClient:
         """
         token = self._get_access_token()
         
-        url = f"{self.base_url}/consumerservices/credit-profile/v2/credit-report"
+        # Experian uses a gateway endpoint with targeturl parameter
+        target_url = f"{self.base_url}/consumerservices/credit-profile/v2/credit-report"
+        url = f"{self.base_url}/eits/gdp/v1/request?targeturl={requests.utils.quote(target_url, safe='')}"
         
         headers = {
             'Authorization': f'Bearer {token}',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'clientReferenceId': 'SBMYSQL'  # Sandbox reference ID
         }
         
+        print(f"DEBUG: Using clientReferenceId: SBMYSQL")
+        
+        # Build minimal required payload per Experian schema
         payload = {
-            'consumerPii': consumer_info,
+            'consumerPii': {
+                'primaryApplicant': {
+                    'name': {
+                        'lastName': consumer_info.get('lastName', ''),
+                        'firstName': consumer_info.get('firstName', ''),
+                        'middleName': '',
+                        'generationCode': '',
+                        'prefix': ''
+                    },
+                    'dob': {
+                        'dob': consumer_info.get('dob', '')
+                    },
+                    'ssn': {
+                        'ssn': consumer_info.get('ssn', '')
+                    },
+                    'currentAddress': {
+                        'line1': consumer_info.get('address', {}).get('line1', ''),
+                        'line2': consumer_info.get('address', {}).get('line2', ''),
+                        'city': consumer_info.get('address', {}).get('city', ''),
+                        'state': consumer_info.get('address', {}).get('state', ''),
+                        'zipCode': consumer_info.get('address', {}).get('zip', ''),
+                        'country': ''
+                    }
+                }
+            },
             'requestor': {
-                'subscriberCode': self.client_id
+                'subscriberCode': self.client_id  # Your actual client ID
             },
             'permissiblePurpose': {
-                'type': 'OwnCredit',  # Consumer requesting their own credit
-                'terms': 'Y'
+                'type': '3F',  # OwnCredit code
+                'terms': 'Y',
+                'abbreviatedAmount': ''
             },
+            'mlaReport': '',
             'addOns': {
-                'scoreIndicator': include_score
+                'directCheck': '',
+                'demographics': '',
+                'riskModels': {
+                    'modelIndicator': ['V4'],
+                    'scorePercentile': 'Y'
+                } if include_score else {},
+                'fraudShield': '',
+                'mla': '',
+                'ofac': ''
             }
         }
         
@@ -311,27 +363,46 @@ def main():
     # Load from environment variables
     client_id = os.getenv('EXPERIAN_CLIENT_ID')
     client_secret = os.getenv('EXPERIAN_CLIENT_SECRET')
+    username = os.getenv('EXPERIAN_USERNAME')
+    password = os.getenv('EXPERIAN_PASSWORD')
     
-    if not all([client_id, client_secret]):
-        print("Please set EXPERIAN_CLIENT_ID and EXPERIAN_CLIENT_SECRET environment variables")
+    if not all([client_id, client_secret, username, password]):
+        print("Please set EXPERIAN credentials in .env file:")
+        print("  - EXPERIAN_CLIENT_ID")
+        print("  - EXPERIAN_CLIENT_SECRET")
+        print("  - EXPERIAN_USERNAME (your developer portal username)")
+        print("  - EXPERIAN_PASSWORD (your developer portal password)")
         return
     
     # Initialize client
-    experian = ExperianClient(client_id, client_secret, environment='sandbox')
+    experian = ExperianClient(
+        client_id=client_id,
+        client_secret=client_secret,
+        username=username,
+        password=password,
+        environment='sandbox'
+    )
     
-    # Example consumer info (use real data in production)
+    # Example consumer info for Experian (using sandbox test data)
+    # Try using example SSN 666601111 and simple DOB
     consumer_info = {
-        'firstName': 'John',
-        'lastName': 'Doe',
-        'ssn': '666112222',  # Sandbox test SSN
-        'dob': '1980-01-01',
+        'firstName': 'JOHN',
+        'lastName': 'DOE',
+        'middleName': '',
+        'ssn': '666601111',  # Experian sandbox test SSN  
+        'dob': '1980-01-01',  # Try with dashes
         'address': {
-            'line1': '123 Main St',
-            'city': 'New York',
-            'state': 'NY',
-            'zip': '10001'
+            'line1': '10655 BIRCH ST',
+            'line2': '',
+            'city': 'SCRANTON',
+            'state': 'PA',
+            'zip': '18508'
         }
     }
+    
+    print(f"\nDEBUG: Testing with SSN: {consumer_info['ssn']}")
+    print(f"DEBUG: DOB format: {consumer_info['dob']}")
+    print(f"DEBUG: Subscriber Code: {client_id}\n")
     
     try:
         # Get credit summary
