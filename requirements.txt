@@ -7,6 +7,9 @@ requests>=2.31.0
 # Environment variables
 python-dotenv>=1.0.0
 
+# Web Dashboard
+flask>=3.0.0
+
 # Optional: Data handling
 pandas>=2.0.0
 

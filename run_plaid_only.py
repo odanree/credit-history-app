@@ -92,7 +92,8 @@ def main():
             print(f"  Balance: ${card['current_balance']:,.2f}")
             if card.get('credit_limit'):
                 print(f"  Limit: ${card['credit_limit']:,.2f}")
-                print(f"  Available: ${card.get('available', 0):,.2f}")
+                available = card.get('available') or 0
+                print(f"  Available: ${available:,.2f}")
                 print(f"  Utilization: {card['utilization_percent']:.1f}%")
         
         print(f"\n" + "=" * 60)
@@ -102,8 +103,10 @@ def main():
         # Show last 10 transactions
         for txn in credit_data['transactions'][:10]:
             amount = txn.get('amount', 0)
+            category = txn.get('category', ['Other'])
+            category_name = category[0] if category else 'Other'
             print(f"\n{txn.get('date')}: {txn.get('name')}")
-            print(f"  ${amount:.2f} - {txn.get('category', ['Other'])[0]}")
+            print(f"  ${amount:.2f} - {category_name}")
         
         if len(credit_data['transactions']) > 10:
             print(f"\n... and {len(credit_data['transactions']) - 10} more transactions")
