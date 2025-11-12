@@ -5,11 +5,14 @@ A comprehensive credit monitoring application integrating Plaid (transaction dat
 ## 🚀 Quick Start
 
 ```bash
+# Activate virtual environment
+.\.venv\Scripts\Activate.ps1
+
 # Install dependencies
-pip install -r config/requirements.txt
+pip install -r requirements.txt
 
 # Configure environment
-cp config/.env.example .env
+cp .env.example .env
 # Edit .env with your API credentials
 
 # Run Flask dashboard
