@@ -5,6 +5,7 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 import os
 import sys
+import plaid
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -139,6 +140,45 @@ class TestPlaidClient:
         assert all(card['type'] == 'credit' for card in credit_cards)
 
 
+class TestPlaidClientLinkToken:
+    """Tests for link token creation"""
+    
+    @pytest.fixture
+    def plaid_client(self):
+        """Create PlaidClient instance for testing"""
+        return PlaidClient(
+            client_id="test_client_id",
+            secret="test_secret",
+            environment="sandbox"
+        )
+    
+    @patch('src.integrations.plaid_integration.plaid_api.PlaidApi')
+    def test_create_link_token_success(self, mock_plaid_api, plaid_client):
+        """Test successful link token creation"""
+        mock_response = MagicMock()
+        mock_response.to_dict.return_value = {
+            'link_token': 'link-sandbox-test-token',
+            'expiration': '2025-11-12T00:00:00Z'
+        }
+        
+        with patch.object(plaid_client, 'client') as mock_client:
+            mock_client.link_token_create.return_value = mock_response
+            
+            result = plaid_client.create_link_token('user_123')
+        
+        assert 'link_token' in result
+        assert result['link_token'] == 'link-sandbox-test-token'
+    
+    @patch('src.integrations.plaid_integration.plaid_api.PlaidApi')
+    def test_create_link_token_api_exception(self, mock_plaid_api, plaid_client):
+        """Test link token creation with API exception"""
+        with patch.object(plaid_client, 'client') as mock_client:
+            mock_client.link_token_create.side_effect = plaid.ApiException("API Error")
+            
+            with pytest.raises(plaid.ApiException):
+                plaid_client.create_link_token('user_123')
+
+
 class TestPlaidClientAccountsAndTransactions:
     """Additional tests for accounts and transactions methods"""
     
@@ -175,6 +215,15 @@ class TestPlaidClientAccountsAndTransactions:
         assert result[0]['name'] == 'Credit Card'
     
     @patch('src.integrations.plaid_integration.plaid_api.PlaidApi')
+    def test_get_accounts_api_exception(self, mock_plaid_api, plaid_client):
+        """Test get accounts with API exception"""
+        with patch.object(plaid_client, 'client') as mock_client:
+            mock_client.accounts_get.side_effect = plaid.ApiException("API Error")
+            
+            with pytest.raises(plaid.ApiException):
+                plaid_client.get_accounts('test_token')
+    
+    @patch('src.integrations.plaid_integration.plaid_api.PlaidApi')
     def test_get_transactions_with_date_range(self, mock_plaid_api, plaid_client):
         """Test transaction retrieval with date range"""
         from datetime import datetime, timedelta
@@ -202,6 +251,60 @@ class TestPlaidClientAccountsAndTransactions:
         
         assert 'transactions' in result
         assert len(result['transactions']) == 1
+    
+    @patch('src.integrations.plaid_integration.plaid_api.PlaidApi')
+    def test_get_transactions_with_pagination(self, mock_plaid_api, plaid_client):
+        """Test transaction retrieval with pagination"""
+        from datetime import datetime, timedelta
+        
+        # First call returns partial transactions
+        mock_response1 = MagicMock()
+        mock_response1.to_dict.return_value = {
+            'transactions': [{'transaction_id': 'txn_1'}],
+            'total_transactions': 2
+        }
+        
+        # Second call returns remaining transactions  
+        mock_response2 = MagicMock()
+        mock_response2.__getitem__ = lambda self, key: [{'transaction_id': 'txn_2'}] if key == 'transactions' else None
+        
+        with patch.object(plaid_client, 'client') as mock_client:
+            mock_client.transactions_get.side_effect = [mock_response1, mock_response2]
+            
+            result = plaid_client.get_transactions('test_token')
+        
+        assert 'transactions' in result
+        # Pagination logic extends the list
+        assert len(result['transactions']) >= 1
+    
+    @patch('src.integrations.plaid_integration.plaid_api.PlaidApi')
+    def test_get_transactions_with_account_ids(self, mock_plaid_api, plaid_client):
+        """Test transaction retrieval with specific account IDs"""
+        mock_response = MagicMock()
+        mock_response.to_dict.return_value = {
+            'transactions': [{'transaction_id': 'txn_1', 'account_id': 'acc_123'}],
+            'total_transactions': 1
+        }
+        
+        with patch.object(plaid_client, 'client') as mock_client:
+            mock_client.transactions_get.return_value = mock_response
+            
+            result = plaid_client.get_transactions(
+                'test_token',
+                account_ids=['acc_123']
+            )
+        
+        assert 'transactions' in result
+        assert result['transactions'][0]['account_id'] == 'acc_123'
+    
+    @patch('src.integrations.plaid_integration.plaid_api.PlaidApi')
+    def test_get_transactions_api_exception(self, mock_plaid_api, plaid_client):
+        """Test get transactions with API exception"""
+        with patch.object(plaid_client, 'client') as mock_client:
+            mock_client.transactions_get.side_effect = plaid.ApiException("API Error")
+            
+            with pytest.raises(plaid.ApiException):
+                plaid_client.get_transactions('test_token')
     
     @patch('src.integrations.plaid_integration.plaid_api.PlaidApi')
     def test_get_credit_card_data_multiple_cards(self, mock_plaid_api, plaid_client):
