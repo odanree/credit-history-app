@@ -31,7 +31,7 @@ class PlaidClient:
         """
         env_map = {
             'sandbox': plaid.Environment.Sandbox,
-            'development': plaid.Environment.Development,
+            'development': plaid.Environment.Sandbox,  # Development maps to Sandbox
             'production': plaid.Environment.Production
         }
         
@@ -200,6 +200,10 @@ class PlaidClient:
 
 def main():
     """Example usage"""
+    # Load environment variables from .env file
+    from dotenv import load_dotenv
+    load_dotenv()
+    
     # Load from environment variables
     client_id = os.getenv('PLAID_CLIENT_ID')
     secret = os.getenv('PLAID_SECRET')

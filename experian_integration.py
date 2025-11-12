@@ -53,16 +53,23 @@ class ExperianClient:
         encoded_credentials = base64.b64encode(credentials.encode()).decode()
         
         headers = {
-            'Authorization': f'Basic {encoded_credentials}',
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/json'
         }
         
-        data = {
-            'grant_type': 'client_credentials'
+        # Experian API credentials format
+        payload = {
+            'client_id': self.client_id,
+            'client_secret': self.client_secret
         }
         
         try:
-            response = requests.post(auth_url, headers=headers, data=data)
+            response = requests.post(auth_url, headers=headers, json=payload)
+            
+            # Print detailed error info
+            if response.status_code != 200:
+                print(f"Error response: {response.status_code}")
+                print(f"Response body: {response.text}")
+                
             response.raise_for_status()
             token_data = response.json()
             
@@ -297,6 +304,10 @@ class ExperianClient:
 
 def main():
     """Example usage"""
+    # Load environment variables from .env file
+    from dotenv import load_dotenv
+    load_dotenv()
+    
     # Load from environment variables
     client_id = os.getenv('EXPERIAN_CLIENT_ID')
     client_secret = os.getenv('EXPERIAN_CLIENT_SECRET')
