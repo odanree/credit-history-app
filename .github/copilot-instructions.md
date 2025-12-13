@@ -33,6 +33,14 @@ This is a Python application that integrates with **Plaid API** (for financial t
 - Log errors with context (e.g., which API, what operation)
 - Never expose API keys or sensitive data in error messages
 
+### Flask Web App Error Handling
+- Missing credentials show setup page (not error message)
+- API endpoints return 503 when credentials missing (not 500)
+- Health check endpoints (`/health`, `/config-status`) for monitoring
+- Graceful degradation: show helpful instructions instead of breaking
+- Use HTTP 503 (Service Unavailable) for missing config
+- Use HTTP 500 only for unexpected application errors
+
 ### Example:
 ```python
 try:
