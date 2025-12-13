@@ -370,6 +370,209 @@
             animation: pulse 2s ease-in-out infinite;
         }
         
+        /* Filters Section */
+        .filters-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            animation: fadeInUp 0.8s ease-out 0.5s both;
+        }
+        
+        .filter-group {
+            margin-bottom: 20px;
+        }
+        
+        .filter-label {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+            font-size: 0.95em;
+        }
+        
+        .date-filter {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .date-btn {
+            padding: 10px 16px;
+            border: 2px solid #e9ecef;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: #666;
+        }
+        
+        .date-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+        
+        .date-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .category-filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .category-tag {
+            padding: 8px 14px;
+            background: #f0f1ff;
+            border: 2px solid #e9ecef;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            color: #667eea;
+            font-weight: 500;
+        }
+        
+        .category-tag:hover {
+            border-color: #667eea;
+            background: #e9ecff;
+        }
+        
+        .category-tag.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+        
+        /* Spending Simulator */
+        .simulator-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            animation: fadeInUp 0.8s ease-out 0.6s both;
+        }
+        
+        .simulator-title {
+            color: #333;
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .slider-container {
+            margin: 20px 0;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .spending-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #e9ecef;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        .spending-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .spending-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+        }
+        
+        .spending-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .spending-slider::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+        }
+        
+        .simulator-result {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            animation: floatIn 0.6s ease-out;
+            text-align: center;
+        }
+        
+        .result-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+            display: block;
+            width: 100%;
+        }
+        
+        .result-label {
+            opacity: 0.9;
+            font-size: 0.95em;
+        }
+        
+        .reset-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+        
+        .reset-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .filter-stats {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            color: #666;
+            font-size: 0.95em;
+        }
+        
         @media (max-width: 768px) {
             .grid {
                 grid-template-columns: 1fr;
@@ -377,6 +580,14 @@
             
             h1 {
                 font-size: 1.8em;
+            }
+            
+            .date-filter {
+                flex-direction: column;
+            }
+            
+            .date-btn {
+                width: 100%;
             }
         }
     </style>
@@ -387,6 +598,52 @@
             <h1>💳 Credit History Dashboard</h1>
             <p class="subtitle">Powered by Plaid API</p>
         </header>
+        
+        <!-- Recent Transactions with Filters -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h2 style="margin: 0;"><span class="emoji">📜</span> Transactions</h2>
+                <div style="font-size: 0.9em; color: #666;">Showing <strong id="filteredCount">0</strong> transactions</div>
+            </div>
+            
+            <!-- Filters Header -->
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                <!-- Date Range Filter -->
+                <div style="margin-bottom: 20px;">
+                    <label class="filter-label" style="margin-bottom: 10px; margin-top: 0;">Filter by Time Period</label>
+                    <div class="date-filter">
+                        <button class="date-btn active" data-days="30">Last 30 Days</button>
+                        <button class="date-btn" data-days="60">Last 60 Days</button>
+                        <button class="date-btn" data-days="90">Last 90 Days</button>
+                        <button class="date-btn" data-days="all">All Time</button>
+                    </div>
+                </div>
+                
+                <!-- Category Filter -->
+                <div>
+                    <label class="filter-label" style="margin-bottom: 10px; margin-top: 0;">Filter by Category</label>
+                    <div class="category-filters" id="categoryFilters"></div>
+                </div>
+            </div>
+            
+            <!-- Transactions List -->
+            {% for txn in credit_data.transactions[:50] %}
+            <div class="transaction" data-date="{{ txn.date }}" data-category="{% if txn.category is iterable and txn.category is not string %}{{ txn.category[0] }}{% else %}{{ txn.category or 'Other' }}{% endif %}">
+                <div class="transaction-info">
+                    <div class="transaction-name">{{ txn.name }}</div>
+                    <div class="transaction-date">{{ txn.date }}</div>
+                </div>
+                <div class="transaction-amount">${{ "%.2f"|format(txn.amount|abs) }}</div>
+            </div>
+            {% endfor %}
+            {% if credit_data.transactions|length > 50 %}
+            <div style="text-align: center; margin-top: 20px; color: #666;">
+                ... and {{ credit_data.transactions|length - 50 }} more transactions
+            </div>
+            {% endif %}
+            
+            <button class="reset-btn" onclick="resetFilters()" style="margin-top: 20px; width: 100%;">Reset Filters</button>
+        </div>
         
         <!-- Summary Cards -->
         <div class="grid">
@@ -476,24 +733,193 @@
             </div>
         </div>
         
-        <!-- Recent Transactions -->
-        <div class="card">
-            <h2><span class="emoji">📜</span> Recent Transactions</h2>
-            {% for txn in credit_data.transactions[:15] %}
-            <div class="transaction">
-                <div class="transaction-info">
-                    <div class="transaction-name">{{ txn.name }}</div>
-                    <div class="transaction-date">{{ txn.date }}</div>
+        <!-- Spending Simulator -->
+        <div class="simulator-section">
+            <h2 class="simulator-title">
+                <span class="emoji">💡</span> Spending Simulator
+            </h2>
+            <p style="color: #666; margin-bottom: 20px;">
+                Adjust your spending below to see how it affects your credit utilization
+            </p>
+            
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>Reduce Spending</span>
+                    <span id="sliderValue">0%</span>
                 </div>
-                <div class="transaction-amount">${{ "%.2f"|format(txn.amount|abs) }}</div>
+                <input type="range" min="0" max="100" value="0" class="spending-slider" id="spendingSlider">
             </div>
-            {% endfor %}
-            {% if credit_data.transactions|length > 15 %}
-            <div style="text-align: center; margin-top: 20px; color: #666;">
-                ... and {{ credit_data.transactions|length - 15 }} more transactions
+            
+            <div class="simulator-result">
+                <div class="result-label">Projected Utilization</div>
+                <div class="result-value" id="projectedUtil">{{ "%.1f"|format((credit_data.total_balance / credit_data.total_limit * 100) if credit_data.total_limit > 0 else 0) }}%</div>
+                <div class="result-label" id="projectedMessage">Keep below 30% for optimal credit health</div>
             </div>
-            {% endif %}
+            
+            <button class="reset-btn" onclick="resetSimulator()">Reset Simulator</button>
         </div>
     </div>
+    
+    <script>
+        // Data from Flask template
+        const originalData = {
+            totalBalance: {{ credit_data.total_balance }},
+            totalLimit: {{ credit_data.total_limit }},
+            transactions: {{ credit_data.transactions|tojson }},
+            allCategories: {{ analysis.top_categories|map(attribute=0)|list|tojson }}
+        };
+        
+        let currentFilters = {
+            days: 30,
+            categories: []
+        };
+        
+        // Initialize filters
+        function initializeFilters() {
+            const categoryContainer = document.getElementById('categoryFilters');
+            const categories = originalData.allCategories || [];
+            
+            categories.forEach(category => {
+                const tag = document.createElement('button');
+                tag.className = 'category-tag';
+                tag.textContent = category;
+                tag.onclick = () => toggleCategory(tag, category);
+                categoryContainer.appendChild(tag);
+            });
+        }
+        
+        // Toggle date filter
+        document.querySelectorAll('.date-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentFilters.days = this.dataset.days === 'all' ? 'all' : parseInt(this.dataset.days);
+                applyFilters();
+            });
+        });
+        
+        // Toggle category filter
+        function toggleCategory(element, category) {
+            element.classList.toggle('active');
+            
+            if (element.classList.contains('active')) {
+                if (!currentFilters.categories.includes(category)) {
+                    currentFilters.categories.push(category);
+                }
+            } else {
+                currentFilters.categories = currentFilters.categories.filter(c => c !== category);
+            }
+            
+            applyFilters();
+        }
+        
+        // Apply filters to transactions
+        function applyFilters() {
+            const now = new Date();
+            const transactions = document.querySelectorAll('.transaction');
+            let visibleCount = 0;
+            
+            transactions.forEach(txn => {
+                let shouldShow = true;
+                
+                // Filter by date
+                if (currentFilters.days !== 'all') {
+                    const txnDate = new Date(txn.dataset.date);
+                    const cutoffDate = new Date(now);
+                    cutoffDate.setDate(cutoffDate.getDate() - currentFilters.days);
+                    
+                    if (txnDate < cutoffDate) {
+                        shouldShow = false;
+                    }
+                }
+                
+                // Filter by category
+                if (shouldShow && currentFilters.categories.length > 0) {
+                    const txnCategory = txn.dataset.category;
+                    if (!currentFilters.categories.includes(txnCategory)) {
+                        shouldShow = false;
+                    }
+                }
+                
+                if (shouldShow) {
+                    txn.style.display = '';
+                    visibleCount++;
+                } else {
+                    txn.style.display = 'none';
+                }
+            });
+            
+            // Update count
+            document.getElementById('filteredCount').textContent = visibleCount;
+        }
+        
+        // Spending Simulator
+        const slider = document.getElementById('spendingSlider');
+        const originalUtilization = (originalData.totalBalance / originalData.totalLimit * 100);
+        const originalLimit = originalData.totalLimit;
+        
+        slider.addEventListener('input', function() {
+            const reduction = parseFloat(this.value);
+            document.getElementById('sliderValue').textContent = reduction + '%';
+            
+            // Calculate new balance and utilization
+            const reductionAmount = originalData.totalBalance * (reduction / 100);
+            const newBalance = originalData.totalBalance - reductionAmount;
+            const newUtilization = (newBalance / originalLimit * 100);
+            
+            // Update display
+            const utilElement = document.getElementById('projectedUtil');
+            const messageElement = document.getElementById('projectedMessage');
+            
+            utilElement.textContent = newUtilization.toFixed(1) + '%';
+            
+            // Change color based on utilization
+            if (newUtilization < 10) {
+                messageElement.textContent = '✅ Excellent! Utilization below 10%';
+            } else if (newUtilization < 30) {
+                messageElement.textContent = '✅ Great! Utilization below 30%';
+            } else if (newUtilization < 50) {
+                messageElement.textContent = '⚠️ Fair - Try to get below 30%';
+            } else {
+                messageElement.textContent = '❌ High utilization - Reduce spending';
+            }
+            
+            // Animate the result
+            utilElement.style.animation = 'none';
+            setTimeout(() => {
+                utilElement.style.animation = 'pulse 0.6s ease-out';
+            }, 10);
+        });
+        
+        function resetSimulator() {
+            slider.value = 0;
+            document.getElementById('sliderValue').textContent = '0%';
+            document.getElementById('projectedUtil').textContent = originalUtilization.toFixed(1) + '%';
+            document.getElementById('projectedMessage').textContent = 'Keep below 30% for optimal credit health';
+        }
+        
+        function resetFilters() {
+            // Reset date buttons
+            document.querySelectorAll('.date-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('[data-days="30"]').classList.add('active');
+            
+            // Reset categories
+            document.querySelectorAll('.category-tag').forEach(tag => tag.classList.remove('active'));
+            
+            // Reset filters object
+            currentFilters = {
+                days: 30,
+                categories: []
+            };
+            
+            applyFilters();
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeFilters();
+            applyFilters();
+        });
+    </script>
 </body>
 </html>
