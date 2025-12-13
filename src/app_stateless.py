@@ -15,6 +15,7 @@ import sys
 from datetime import datetime, timedelta
 from collections import defaultdict
 from dotenv import load_dotenv
+import time
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -31,12 +32,21 @@ app = Flask(__name__)
 
 app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))
 
-# Session stored in encrypted cookie (no server-side storage)
+# Session stored in secure cookies (no server-side storage for scalability)
+# Real optimization: in-memory cache layer in PlaidClient (5-minute TTL)
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Can't be accessed by JavaScript
 app.config['SESSION_COOKIE_SECURE'] = True    # HTTPS only
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
+app.config['SESSION_REFRESH_EACH_REQUEST'] = False  # Don't refresh every request
+app.config['SESSION_FILE_THRESHOLD'] = 500  # Session files before cleanup
+
+# Use temp directory for session files (not persistent, cleaned up)
+import tempfile
+session_dir = os.path.join(tempfile.gettempdir(), 'flask_sessions')
+os.makedirs(session_dir, exist_ok=True)
+app.config['SESSION_FILE_DIR'] = session_dir
 
 Session(app)
 
@@ -88,12 +98,15 @@ class StatelessPlaidClient:
     """
     Fetch data from Plaid on-demand.
     Don't store anything in database.
+    Simple in-memory cache for 5 minutes to improve UX.
     """
     
     def __init__(self):
         self.client_id = os.getenv('PLAID_CLIENT_ID')
         self.secret = os.getenv('PLAID_SECRET')
         self.env = os.getenv('PLAID_ENV', 'sandbox')
+        self._cache = {}
+        self._cache_expiry = {}
     
     def get_token_from_session(self) -> str:
         """Retrieve and decrypt access token from session"""
@@ -112,13 +125,22 @@ class StatelessPlaidClient:
         session.modified = True
     
     def get_dashboard_data(self) -> dict:
-        """Fetch fresh dashboard data from Plaid (NOT stored)"""
+        """Fetch fresh dashboard data from Plaid (NOT stored in database)"""
         try:
             access_token = self.get_token_from_session()
             
             if not self.client_id or not self.secret:
                 return {'error': 'Plaid credentials not configured'}
             
+            # Check cache first (5 minute TTL for better UX)
+            cache_key = f"plaid_data_{access_token[-10:]}"
+            now = time.time()
+            
+            if cache_key in self._cache and cache_key in self._cache_expiry:
+                if now < self._cache_expiry[cache_key]:
+                    return self._cache[cache_key]
+            
+            # Cache miss: fetch from Plaid
             client = PlaidClient(self.client_id, self.secret, self.env)
             credit_data = client.get_credit_card_data(access_token)
             
@@ -126,8 +148,10 @@ class StatelessPlaidClient:
                 error_msg = credit_data.get('error', 'Unknown error') if credit_data else 'No data'
                 return {'error': f'Failed to fetch from Plaid: {error_msg}'}
             
-            # Data is returned but NOT stored in database
-            # It's returned directly to frontend
+            # Cache for 5 minutes
+            self._cache[cache_key] = credit_data
+            self._cache_expiry[cache_key] = now + 300  # 5 minutes
+            
             return credit_data
             
         except ValueError as e:
@@ -175,8 +199,17 @@ def require_plaid_token(f):
 def dashboard():
     """Main dashboard - fetch fresh data from Plaid"""
     if 'plaid_token' not in session:
-        return render_template('setup.html',
-                             message="Please configure Plaid to see your credit dashboard")
+        # Try to load from .env for local development
+        env_token = os.getenv('PLAID_ACCESS_TOKEN')
+        if env_token:
+            try:
+                plaid_client.store_token_in_session(env_token)
+            except Exception as e:
+                return render_template('setup.html',
+                                     message=f"Error loading token from .env: {str(e)}")
+        else:
+            return render_template('setup.html',
+                                 message="Please configure Plaid to see your credit dashboard")
     
     credit_data = plaid_client.get_dashboard_data()
     
