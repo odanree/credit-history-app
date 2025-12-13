@@ -67,15 +67,15 @@ class TestFlaskApp:
     
     @patch('src.app.get_credit_data')
     def test_dashboard_route_error(self, mock_get_data, client):
-        """Test dashboard route with data fetch error"""
+        """Test dashboard route with data fetch error - shows setup page"""
         # Mock error response
         mock_get_data.return_value = None
         
         response = client.get('/')
         
-        # Should return 500 error with error message
-        assert response.status_code == 500
-        assert b'Error loading data' in response.data
+        # Should return 200 with setup page instead of error
+        assert response.status_code == 200
+        assert b'Setup Required' in response.data or b'setup' in response.data.lower()
     
     @patch('src.app.get_credit_data')
     def test_api_data_endpoint(self, mock_get_data, client):
