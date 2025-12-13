@@ -11,11 +11,16 @@ A comprehensive credit monitoring application integrating Plaid (transaction dat
 
 Choose your approach based on your needs:
 
-| Option | Storage | Speed | GDPR | Best For |
-|--------|---------|-------|------|----------|
-| **Stateless** | Session only | ~200ms | Trivial ✅ | MVP, low liability |
-| **Hybrid** | Redis cache + minimal DB | ~10ms | Easy ✅ | Production, scale |
-| **Traditional** | Full database | ~5ms | Complex | Analytics, trends |
+| Option | Storage | Speed | GDPR | Complexity | Best For |
+|--------|---------|-------|------|-----------|----------|
+| **Stateless** | Session only | ~200ms first, ~5-10ms cached | Trivial ✅ | Simple | MVP, low liability |
+| **Hybrid** | Redis cache + minimal DB | ~10ms avg | Easy ✅ | Moderate | Production, scale |
+| **Traditional** | Full PostgreSQL DB | ~5ms avg | Complex | Complex | Analytics, trends |
+
+**Performance Details (Stateless):**
+- First request: ~200-500ms (fetches from Plaid API)
+- Cached requests: ~5-10ms (5-minute in-memory cache TTL)
+- Session storage: Encrypted token in cookie (secure, scales infinitely)
 
 **Quick recommendation:**
 - **MVP/Proof of concept** → Use stateless (see [docs/STATELESS_QUICKSTART.md](docs/STATELESS_QUICKSTART.md))
@@ -26,7 +31,13 @@ Choose your approach based on your needs:
 
 ### Option 1: Stateless (Recommended for MVP)
 
-Zero customer data storage. Fresh financial data from Plaid every request.
+Zero customer data storage. Fresh financial data from Plaid every request (with caching).
+
+**How it works:**
+1. First request: Fetches latest data from Plaid (~200-500ms)
+2. Subsequent requests (within 5 min): Returns cached data (~5-10ms)
+3. Token encrypted: Stored securely in session cookie
+4. No database: GDPR/CCPA compliant by design
 
 ```bash
 # Activate virtual environment
@@ -38,9 +49,9 @@ pip install -r requirements.txt
 
 # Configure environment
 cp .env.example .env
-# Edit .env with Plaid credentials
+# Edit .env with Plaid credentials and TOKEN_ENCRYPTION_KEY
 
-# Generate encryption key
+# Generate encryption key (one-time setup)
 python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 # Add TOKEN_ENCRYPTION_KEY to .env
 
@@ -48,7 +59,7 @@ python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().
 python3 -m src.app_stateless
 ```
 
-Visit: http://localhost:5001
+Visit: http://localhost:5001 - token auto-loads from `.env` on first visit
 
 See [docs/STATELESS_QUICKSTART.md](docs/STATELESS_QUICKSTART.md) for detailed setup.
 
