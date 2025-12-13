@@ -2,6 +2,22 @@
 
 A Python application that combines **Plaid** (for transaction data) and **Experian Connect** (for credit reports) to provide a complete credit history profile, similar to services like Empower.
 
+## 📖 Documentation Index
+
+**Quick Start:**
+- [STATELESS_QUICKSTART.md](STATELESS_QUICKSTART.md) - Get started with stateless architecture (MVP)
+
+**Architecture:**
+- [STATELESS_ARCHITECTURE.md](STATELESS_ARCHITECTURE.md) - Compare 4 architecture options
+- [ARCHITECTURE.md](ARCHITECTURE.md) - Traditional multi-tenant database design
+- [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) - Migrate from database to stateless
+
+**Security & Deployment:**
+- [SECURITY_ANALYSIS.md](SECURITY_ANALYSIS.md) - Detailed security analysis & best practices
+- [DEPLOYMENT.md](DEPLOYMENT.md) - Deploy to Render
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Development workflow
+- [WORKFLOW.md](WORKFLOW.md) - Git workflow guide
+
 ## Features
 
 ### 📊 Complete Credit Profile
