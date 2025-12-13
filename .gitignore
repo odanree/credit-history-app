@@ -41,3 +41,5 @@ Thumbs.db
 # Credentials
 credentials.json
 access_tokens.txt
+flask_session/
+src/templates/Portfolio.code-workspace

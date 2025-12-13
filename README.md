@@ -165,6 +165,40 @@ gh pr create --base main
 
 See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for full workflow.
 
+## 🔐 Security & Compliance
+
+This application handles sensitive financial data and implements industry-standard security practices:
+
+### Data Protection
+- **Encryption in Transit:** All API calls use HTTPS/TLS 1.3
+- **Encryption at Rest:** Sensitive credentials encrypted in database
+- **Password Security:** Passwords hashed with bcrypt (12+ rounds)
+- **Token Management:** Short-lived access tokens with refresh rotation
+
+### Privacy & Compliance
+- **GDPR Compliant:** User data export and deletion endpoints
+- **CCPA Ready:** Privacy controls and audit logging
+- **Audit Logging:** All sensitive operations logged with timestamps and user context
+- **Data Isolation:** Per-user data access — users can only view their own data
+
+### Best Practices
+- **Input Validation:** All user input validated and sanitized
+- **Rate Limiting:** Auth endpoints protected against brute force attacks
+- **Error Handling:** Generic error messages (implementation details never exposed)
+- **Third-Party Security:** Vendors (Plaid, Experian) vetted for SOC 2 compliance
+
+### Responsible Disclosure
+
+Found a security vulnerability? Please email security@example.com with:
+- Description of the vulnerability
+- Steps to reproduce
+- Potential impact
+- Suggested fix (if any)
+
+We'll respond within 24 hours and credit you in our security notes.
+
+See [SECURITY.md](SECURITY.md) for detailed security information and deployment checklist.
+
 ## 🚢 Deployment
 
 Deploy to Render with one click:
