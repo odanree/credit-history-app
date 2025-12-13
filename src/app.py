@@ -27,12 +27,28 @@ def get_credit_data():
         env = os.getenv('PLAID_ENV', 'sandbox')
         access_token = os.getenv('PLAID_ACCESS_TOKEN')
         
+        # Check for required environment variables
+        if not client_id or not secret:
+            print("Error: PLAID_CLIENT_ID or PLAID_SECRET not set in environment")
+            return None
+        
         if not access_token:
             print("Error: PLAID_ACCESS_TOKEN not found in .env")
+            print("To generate an access token:")
+            print("1. Run: python scripts/setup_plaid_token.py")
+            print("2. Or manually complete Plaid Link flow")
             return None
         
         client = PlaidClient(client_id, secret, env)
-        return client.get_credit_card_data(access_token)
+        credit_data = client.get_credit_card_data(access_token)
+        
+        # Check if we got data back
+        if not credit_data or 'error' in credit_data:
+            error_msg = credit_data.get('error', 'Unknown error') if credit_data else 'No data returned'
+            print(f"Error from Plaid API: {error_msg}")
+            return None
+            
+        return credit_data
     except Exception as e:
         print(f"Error fetching data: {e}")
         import traceback
@@ -94,7 +110,9 @@ def dashboard():
     credit_data = get_credit_data()
     
     if not credit_data:
-        return "Error loading data. Check your Plaid credentials.", 500
+        # Return setup instructions instead of error
+        return render_template('setup.html', 
+                             message="No Plaid access token configured. Please complete the setup steps."), 200
     
     analysis = analyze_transactions(credit_data.get('transactions', []))
     
@@ -108,7 +126,7 @@ def api_data():
     credit_data = get_credit_data()
     if credit_data:
         return jsonify(credit_data)
-    return jsonify({'error': 'Failed to fetch data'}), 500
+    return jsonify({'error': 'Failed to fetch data', 'message': 'PLAID_ACCESS_TOKEN not configured'}), 503
 
 @app.route('/api/transactions')
 def api_transactions():
@@ -116,7 +134,27 @@ def api_transactions():
     credit_data = get_credit_data()
     if credit_data:
         return jsonify(credit_data.get('transactions', []))
-    return jsonify({'error': 'Failed to fetch data'}), 500
+    return jsonify({'error': 'Failed to fetch data', 'message': 'PLAID_ACCESS_TOKEN not configured'}), 503
+
+@app.route('/health')
+def health():
+    """Health check endpoint"""
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.now().isoformat(),
+        'version': '1.0.0'
+    }), 200
+
+@app.route('/config-status')
+def config_status():
+    """Check configuration status"""
+    return jsonify({
+        'has_plaid_client_id': bool(os.getenv('PLAID_CLIENT_ID')),
+        'has_plaid_secret': bool(os.getenv('PLAID_SECRET')),
+        'has_plaid_access_token': bool(os.getenv('PLAID_ACCESS_TOKEN')),
+        'plaid_env': os.getenv('PLAID_ENV', 'sandbox'),
+        'needs_setup': not bool(os.getenv('PLAID_ACCESS_TOKEN'))
+    }), 200
 
 if __name__ == '__main__':
     # Local development
