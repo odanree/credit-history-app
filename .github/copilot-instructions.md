@@ -6,6 +6,45 @@ This is a Python application that integrates with **Plaid API** (for financial t
 
 ## Architecture
 
+### Application Versions
+The project provides two different Flask application implementations:
+
+#### `src/app.py` - Traditional Database Architecture
+- Stores customer data in database
+- Caches transactions for fast performance (~5ms response)
+- Requires PostgreSQL for production
+- Best for: Complex analytics, historical trends, mature products
+- Trade-off: More compliance overhead (GDPR data management)
+
+#### `src/app_stateless.py` - Stateless Architecture (Recommended)
+- Zero customer data storage
+- Access tokens encrypted in session cookies (httpOnly)
+- Fresh data fetched from Plaid on every request (~200-500ms)
+- No database required
+- Best for: MVP, low liability, GDPR compliance
+- Trade-off: Slightly slower, depends on Plaid availability
+
+### Choosing Your Architecture
+
+**Use Stateless if:**
+- Building MVP or proof of concept
+- Want minimal compliance burden
+- Don't need historical data beyond 90 days
+- Prefer zero data breach risk
+- Can accept ~200-500ms response time
+
+**Use Traditional if:**
+- Offering advanced analytics
+- Need historical trends (6+ months)
+- Want <10ms response times
+- Have data engineering resources
+- Planning to scale significantly
+
+**Use Hybrid (Recommended for Scale):**
+- Add Redis cache (7-day TTL) to stateless
+- Best of both: Fast + simple + GDPR-friendly
+- See STATELESS_ARCHITECTURE.md, Option 4
+
 ### Core Modules
 - `plaid_integration.py` - Handles Plaid API interactions for transactions and account balances
 - `experian_integration.py` - Handles Experian API interactions for credit reports and scores
@@ -13,9 +52,12 @@ This is a Python application that integrates with **Plaid API** (for financial t
 
 ### Key Technologies
 - **Python 3.11+**
+- **Flask** - Web framework
 - **Plaid Python SDK** - Financial data aggregation
 - **Requests** - HTTP client for Experian API
 - **python-dotenv** - Environment variable management
+- **Flask-Session** - Secure session management (stateless app)
+- **cryptography** - Token encryption (stateless app)
 - **pandas** - Data processing (optional)
 
 ## Code Style & Conventions
@@ -50,6 +92,66 @@ except plaid.ApiException as e:
     print(f"Error fetching transactions: {e}")
     raise
 ```
+
+## Stateless Architecture (app_stateless.py)
+
+### Session Management
+- **Token Storage:** Plaid access token encrypted in httpOnly session cookie
+- **Encryption:** Use Fernet (cryptography library) with TOKEN_ENCRYPTION_KEY
+- **Session Lifetime:** Default 24 hours, configurable per deployment
+- **Cookie Security:**
+  ```python
+  SESSION_COOKIE_HTTPONLY = True   # Prevent JavaScript access
+  SESSION_COOKIE_SECURE = True      # HTTPS only (production)
+  SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
+  ```
+
+### Data Flow (Stateless Pattern)
+1. **User Setup:** Paste Plaid access token on setup page
+2. **Token Encryption:** Token encrypted and stored in session cookie
+3. **Request Time:** Retrieve encrypted token from session, decrypt it
+4. **Fresh Data:** Call Plaid API to fetch current data (not stored)
+5. **Response:** Return data directly to frontend, discard after response
+6. **Zero Storage:** No customer financial data in database
+
+### Implementation Pattern
+```python
+class StatelessPlaidClient:
+    """Fetch fresh data on-demand, never store it"""
+    
+    def get_token_from_session(self) -> str:
+        """Decrypt access token from encrypted session"""
+        encrypted_token = session['plaid_token']
+        return token_encryption.decrypt(encrypted_token)
+    
+    def store_token_in_session(self, access_token: str):
+        """Encrypt and store access token in session"""
+        encrypted = token_encryption.encrypt(access_token)
+        session['plaid_token'] = encrypted
+        session.permanent = True
+        session.modified = True
+    
+    def get_dashboard_data(self) -> dict:
+        """Fetch fresh data from Plaid (NOT stored in database)"""
+        access_token = self.get_token_from_session()
+        credit_data = plaid_client.get_credit_card_data(access_token)
+        # Return directly, don't store
+        return credit_data
+```
+
+### GDPR/CCPA Compliance (Stateless)
+- **Data Export:** "We don't store customer financial data"
+- **Data Deletion:** Clear session cookie and user record
+- **Right to Access:** User can export any time (fresh from Plaid)
+- **Data Retention:** Session cookie expires per configuration
+
+### When to Use Stateless
+✅ MVP, proof of concept
+✅ Low-traffic applications
+✅ GDPR/CCPA sensitive projects
+✅ Minimal compliance requirements
+✅ Can tolerate 200-500ms latency
+❌ Don't use for: Complex analytics, 6+ months history, <10ms requirements
 
 ## API Integration Best Practices
 

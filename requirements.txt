@@ -9,9 +9,13 @@ python-dotenv>=1.0.0
 
 # Web Dashboard
 flask>=3.0.0
+Flask-Session>=0.5.0
 
 # Production Server
 gunicorn>=21.2.0
+
+# Encryption
+cryptography>=41.0.0
 
 # Optional: Data handling
 pandas>=2.0.0
