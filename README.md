@@ -35,7 +35,8 @@ credit-history-app/
 │   │   ├── plaid_integration.py
 │   │   └── experian_integration.py
 │   ├── templates/           # Flask templates
-│   │   └── dashboard.html
+│   │   ├── dashboard.html   # Main credit dashboard
+│   │   └── setup.html       # Initial setup/configuration page
 │   ├── app.py              # Flask web dashboard
 │   └── main.py             # Combined API client
 ├── scripts/                 # Utility scripts
@@ -55,7 +56,6 @@ credit-history-app/
 │   └── WORKFLOW.md
 └── .github/                 # GitHub configs
     └── workflows/
-
 ```
 
 ## 📚 Documentation
@@ -72,6 +72,8 @@ credit-history-app/
 - 📈 Credit report integration (Experian)
 - 🌐 Web dashboard with visualizations
 - 📱 Responsive mobile-friendly UI
+- ⚙️ Setup wizard for initial Plaid configuration
+- 🏥 Health check endpoints for deployment monitoring
 
 ## ⚙️ Tech Stack
 
@@ -129,6 +131,25 @@ tests/
 **Coverage Goal:** 70%+ for core business logic
 
 ## 🛠️ Development
+
+### Available Endpoints
+
+**Web Dashboard:**
+- `GET /` - Main dashboard (shows setup instructions if credentials not configured)
+- `GET /health` - Health check endpoint (for deployment monitoring)
+- `GET /config-status` - Check configuration status
+
+**API Endpoints:**
+- `GET /api/data` - Full credit data (transactions, cards, balances)
+- `GET /api/transactions` - Transactions only
+
+### Setup on First Run
+
+When you first run the app, if `PLAID_ACCESS_TOKEN` is not configured:
+1. The dashboard displays an interactive setup page
+2. Guides you through getting Plaid credentials
+3. Instructions for running `scripts/setup_plaid_token.py`
+4. Easy steps to configure environment variables on Render
 
 ```bash
 # Create feature branch
