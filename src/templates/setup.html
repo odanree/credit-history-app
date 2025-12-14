@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credit History App - Setup</title>
+    <title>Credit History Dashboard - Setup</title>
+    <script src="https://cdn.plaid.com/link/v3/stable/link-initialize.js"></script>
     <style>
         * {
             margin: 0;
@@ -12,17 +13,17 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
         
         .container {
-            max-width: 800px;
+            max-width: 500px;
             width: 100%;
             background: white;
             padding: 40px;
@@ -33,302 +34,285 @@
         h1 {
             color: #667eea;
             margin-bottom: 10px;
-            font-size: 2em;
+            font-size: 1.8em;
         }
         
         .subtitle {
-            color: #666;
+            color: #999;
             margin-bottom: 30px;
-            font-size: 1.1em;
+            font-size: 0.95em;
         }
         
-        .alert {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 30px;
-            color: #856404;
+        .message {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-size: 0.9em;
         }
         
-        .alert h3 {
-            margin-bottom: 10px;
-            color: #ff6b6b;
+        .message.info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #1976d2;
+        }
+        
+        .message.error {
+            background: #ffebee;
+            color: #d32f2f;
+            border-left: 4px solid #d32f2f;
         }
         
         .section {
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
         
         .section h2 {
+            font-size: 1.1em;
             color: #333;
-            font-size: 1.3em;
             margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #667eea;
-        }
-        
-        .steps {
-            list-style: none;
-            counter-reset: step-counter;
-        }
-        
-        .steps li {
-            counter-increment: step-counter;
-            margin-bottom: 20px;
-            padding-left: 40px;
-            position: relative;
-        }
-        
-        .steps li::before {
-            content: counter(step-counter);
-            position: absolute;
-            left: 0;
-            width: 30px;
-            height: 30px;
-            background: #667eea;
-            color: white;
-            border-radius: 50%;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-        
-        .code-block {
-            background: #f5f5f5;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 5px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            overflow-x: auto;
-        }
-        
-        .env-vars {
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        
-        .env-vars h4 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1em;
-        }
-        
-        .env-var {
-            margin-bottom: 15px;
-            padding: 10px;
-            background: white;
-            border-left: 3px solid #667eea;
-        }
-        
-        .env-var strong {
-            color: #667eea;
-            display: block;
-            margin-bottom: 5px;
-        }
-        
-        .env-var small {
-            color: #666;
-            display: block;
-            margin-top: 5px;
+            gap: 10px;
         }
         
         .section p {
-            color: #555;
+            color: #666;
             line-height: 1.6;
             margin-bottom: 15px;
+            font-size: 0.95em;
         }
         
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        a.btn {
+        .button {
             display: inline-block;
             padding: 12px 24px;
             border-radius: 8px;
             text-decoration: none;
             font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-size: 0.95em;
             transition: all 0.3s ease;
+            text-align: center;
         }
         
-        .btn-primary {
-            background: #667eea;
+        .button-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            width: 100%;
+            margin-bottom: 15px;
         }
         
-        .btn-primary:hover {
-            background: #5568d3;
+        .button-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
         
-        .btn-secondary {
-            background: #e9ecef;
+        .button-secondary {
+            background: #f5f5f5;
             color: #333;
+            border: 1px solid #ddd;
         }
         
-        .btn-secondary:hover {
-            background: #dee2e6;
+        .button-secondary:hover {
+            background: #efefef;
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+        }
+        
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #eee;
+        }
+        
+        .divider span {
+            background: white;
+            padding: 0 10px;
+            color: #999;
+            font-size: 0.9em;
+            position: relative;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+        
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus, input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #999;
+            font-size: 0.85em;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #667eea;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
         
         .info-box {
-            background: #e7f3ff;
-            border-left: 4px solid #2196F3;
+            background: #f0f4ff;
+            border: 1px solid #d0d9f7;
+            border-radius: 8px;
             padding: 15px;
-            border-radius: 5px;
-            margin: 15px 0;
+            font-size: 0.9em;
+            color: #667eea;
+            margin-top: 15px;
         }
         
         .info-box strong {
-            color: #0066cc;
-        }
-        
-        .faq {
-            background: #f5f5f5;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 30px;
-        }
-        
-        .faq h3 {
-            color: #333;
-            margin-top: 20px;
-            margin-bottom: 10px;
-        }
-        
-        .faq p {
-            color: #666;
-            margin-bottom: 15px;
+            color: #667eea;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔐 Credit History App - Setup Required</h1>
-        <p class="subtitle">Connect your financial accounts to view your credit profile</p>
+        <h1>💳 Credit Dashboard</h1>
+        <p class="subtitle">Secure access to your financial data</p>
         
-        <div class="alert">
-            <h3>⚠️ Missing Plaid Configuration</h3>
-            <p>The application requires a Plaid access token to fetch your financial data. Follow the steps below to configure it.</p>
-        </div>
+        {% if message %}
+            <div class="message info">{{ message }}</div>
+        {% endif %}
         
-        <div class="section">
-            <h2>📋 What You Need</h2>
-            <p>To use this application, you need:</p>
-            <ul class="steps">
-                <li><strong>Plaid Account</strong> - Create one at <a href="https://plaid.com" target="_blank">plaid.com</a></li>
-                <li><strong>API Keys</strong> - Get your Client ID and Secret from the Plaid dashboard</li>
-                <li><strong>Access Token</strong> - Generated by completing the Plaid Link flow</li>
-            </ul>
-        </div>
+        {% if error %}
+            <div class="message error">{{ error }}</div>
+        {% endif %}
         
         <div class="section">
-            <h2>🚀 Setup Steps</h2>
+            <h2>🔗 Step 1: Connect Your Bank</h2>
+            <p>Click the button below to securely connect your bank account using Plaid Link.</p>
             
-            <h3 style="color: #333; margin-top: 20px; margin-bottom: 10px;">Step 1: Get Plaid Credentials</h3>
-            <ol class="steps">
-                <li>Go to <a href="https://plaid.com" target="_blank">plaid.com</a> and create an account</li>
-                <li>Log in to the Plaid Dashboard</li>
-                <li>Navigate to Team Settings → Keys & Credentials</li>
-                <li>Copy your <strong>Client ID</strong> and <strong>Secret</strong></li>
-            </ol>
-            
-            <h3 style="color: #333; margin-top: 20px; margin-bottom: 10px;">Step 2: Get Access Token</h3>
-            <p>Run the setup script locally to get an access token:</p>
-            <div class="code-block">
-cd credit-history-app<br>
-python scripts/setup_plaid_token.py
-            </div>
-            <p>This will guide you through the Plaid Link flow to authorize your financial accounts.</p>
-            
-            <h3 style="color: #333; margin-top: 20px; margin-bottom: 10px;">Step 3: Configure Environment Variables</h3>
-            <p>Set these in your Render environment or .env file:</p>
-            
-            <div class="env-vars">
-                <h4>Required Variables:</h4>
-                <div class="env-var">
-                    <strong>PLAID_CLIENT_ID</strong>
-                    <small>Your Plaid Client ID from the dashboard</small>
-                </div>
-                <div class="env-var">
-                    <strong>PLAID_SECRET</strong>
-                    <small>Your Plaid Secret from the dashboard</small>
-                </div>
-                <div class="env-var">
-                    <strong>PLAID_ACCESS_TOKEN</strong>
-                    <small>Generated by setup_plaid_token.py script</small>
-                </div>
-                <div class="env-var">
-                    <strong>PLAID_ENV</strong>
-                    <small>Either "sandbox" or "production" (default: sandbox)</small>
-                </div>
-            </div>
+            <button type="button" class="button button-primary" id="linkButton" onclick="openPlaidLink()">
+                <span id="buttonText">🔐 Connect with Plaid</span>
+            </button>
             
             <div class="info-box">
-                <strong>💡 Tip:</strong> For Render, add these as environment variables in your service settings.
+                <strong>🔒 Secure:</strong> Your credentials are never stored. Only a secure access token is used to fetch your data.
             </div>
         </div>
         
-        <div class="section">
-            <h2>📍 On Render</h2>
-            <ol class="steps">
-                <li>Go to your Render service dashboard</li>
-                <li>Click "Environment" in the left sidebar</li>
-                <li>Add the environment variables above</li>
-                <li>Redeploy your service (or auto-deploys will pick them up)</li>
-                <li>Refresh this page once deployed</li>
-            </ol>
-        </div>
-        
-        <div class="section faq">
-            <h2>❓ Frequently Asked Questions</h2>
-            
-            <h3>What is Plaid?</h3>
-            <p>Plaid is a secure financial data aggregator. It allows you to connect your bank accounts and credit cards to this application without sharing your passwords directly.</p>
-            
-            <h3>Is my data secure?</h3>
-            <p>Yes. Plaid uses bank-level encryption and security. Your credentials are never stored; only the access token is used to fetch your data.</p>
-            
-            <h3>Can I use this with a different bank?</h3>
-            <p>Yes! Plaid supports 12,000+ financial institutions including all major US banks and credit unions.</p>
-            
-            <h3>Do I need a Render account?</h3>
-            <p>Only if you want to deploy this application. You can run it locally without Render.</p>
-            
-            <h3>How do I run this locally?</h3>
-            <div class="code-block">
-git clone https://github.com/odanree/credit-history-app<br>
-cd credit-history-app<br>
-pip install -r requirements.txt<br>
-cp .env.example .env<br>
-# Edit .env with your credentials<br>
-python -m src.app
-            </div>
-        </div>
+        <div class="divider"><span>or</span></div>
         
         <div class="section">
-            <h2>🔗 Useful Links</h2>
-            <ul>
-                <li><a href="https://plaid.com" target="_blank">Plaid Official Website</a></li>
-                <li><a href="https://plaid.com/docs/" target="_blank">Plaid API Documentation</a></li>
-                <li><a href="https://github.com/odanree/credit-history-app" target="_blank">GitHub Repository</a></li>
-                <li><a href="https://plaid.com/docs/sandbox/" target="_blank">Sandbox Test Credentials</a></li>
-            </ul>
-        </div>
-        
-        <div class="button-group">
-            <a href="https://github.com/odanree/credit-history-app/issues" class="btn btn-primary">Report Issue</a>
-            <a href="https://github.com/odanree/credit-history-app" class="btn btn-secondary">View on GitHub</a>
+            <h2>⚙️ Step 2: Manual Setup (Advanced)</h2>
+            <p>If Plaid Link doesn't work, you can manually enter your access token:</p>
+            
+            <form method="POST">
+                <div class="form-group">
+                    <label for="access_token">Plaid Access Token</label>
+                    <input 
+                        type="text" 
+                        id="access_token" 
+                        name="access_token" 
+                        placeholder="access-sandbox-..."
+                        autocomplete="off"
+                    >
+                    <small>Get this from your Plaid dashboard or by running the setup script</small>
+                </div>
+                <button type="submit" class="button button-secondary" style="width: 100%;">
+                    Submit Token
+                </button>
+            </form>
         </div>
     </div>
+    
+    <script>
+        // Initialize Plaid Link
+        let handler;
+        
+        function openPlaidLink() {
+            // Get link token from backend
+            const button = document.getElementById('linkButton');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<span class="loading"></span> Loading...';
+            button.disabled = true;
+            
+            fetch('/api/link-token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    return;
+                }
+                
+                handler = Plaid.create({
+                    token: data.link_token,
+                    onSuccess: (publicToken, metadata) => {
+                        // Send public token to backend
+                        fetch('/link-callback?public_token=' + publicToken)
+                            .then(() => {
+                                window.location.href = '/';
+                            })
+                            .catch(error => {
+                                alert('Error: ' + error);
+                                button.innerHTML = originalText;
+                                button.disabled = false;
+                            });
+                    },
+                    onExit: (error, metadata) => {
+                        if (error) {
+                            alert('Plaid Link Error: ' + error.display_message);
+                        }
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    }
+                });
+                
+                handler.open();
+            })
+            .catch(error => {
+                alert('Error: ' + error);
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+    </script>
 </body>
 </html>

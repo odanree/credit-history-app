@@ -227,7 +227,7 @@ def dashboard():
 def setup():
     """Setup page for Plaid configuration"""
     if request.method == 'POST':
-        # User submitted their access token
+        # User submitted their access token (manual fallback)
         access_token = request.form.get('access_token', '').strip()
         
         if access_token:
@@ -241,6 +241,64 @@ def setup():
     
     # Show setup form
     return render_template('setup.html')
+
+@app.route('/api/link-token', methods=['POST'])
+def api_link_token():
+    """Generate Plaid Link token for client-side flow"""
+    try:
+        if not plaid_client.client_id or not plaid_client.secret:
+            return jsonify({'error': 'Plaid credentials not configured'}), 503
+        
+        client = PlaidClient(plaid_client.client_id, plaid_client.secret, plaid_client.env)
+        
+        # Create link token for Plaid Link flow
+        link_token_request = {
+            'user': {'client_user_id': 'user-' + str(os.urandom(8).hex())},
+            'client_name': 'Credit History Dashboard',
+            'products': ['auth'],  # Just need account access, not transactions
+            'country_codes': ['US'],
+            'language': 'en',
+            'redirect_uri': request.base_url.replace('api/link-token', 'link-callback')
+        }
+        
+        response = client.client.link_token_create(link_token_request)
+        return jsonify({'link_token': response.link_token})
+    
+    except Exception as e:
+        print(f"Error creating link token: {e}")
+        return jsonify({'error': f'Failed to create link token: {str(e)}'}), 503
+
+@app.route('/link-callback', methods=['GET'])
+def link_callback():
+    """Handle Plaid Link callback and exchange public token for access token"""
+    try:
+        public_token = request.args.get('public_token')
+        
+        if not public_token:
+            return render_template('setup.html', 
+                                 error='No public token received from Plaid Link')
+        
+        if not plaid_client.client_id or not plaid_client.secret:
+            return render_template('setup.html',
+                                 error='Plaid credentials not configured')
+        
+        # Exchange public token for access token
+        client = PlaidClient(plaid_client.client_id, plaid_client.secret, plaid_client.env)
+        
+        exchange_request = {'public_token': public_token}
+        response = client.client.item_public_token_exchange(exchange_request)
+        
+        access_token = response.access_token
+        
+        # Store in encrypted session
+        plaid_client.store_token_in_session(access_token)
+        
+        return redirect(url_for('dashboard'))
+    
+    except Exception as e:
+        print(f"Error in link callback: {e}")
+        return render_template('setup.html',
+                             error=f'Failed to authenticate: {str(e)}')
 
 @app.route('/logout')
 def logout():
