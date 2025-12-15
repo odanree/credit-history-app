@@ -733,6 +733,12 @@
             </div>
         </div>
         
+        <!-- Spending by Category - Bar Chart with D3.js -->
+        <div class="card" style="margin-bottom: 30px;">
+            <h2 style="margin-bottom: 20px;"><span class="emoji">📊</span> Spending by Category</h2>
+            <svg id="spending-chart" style="width: 100%; height: 400px; display: block;"></svg>
+        </div>
+        
         <!-- Spending Simulator -->
         <div class="simulator-section">
             <h2 class="simulator-title">
@@ -919,7 +925,144 @@
         document.addEventListener('DOMContentLoaded', () => {
             initializeFilters();
             applyFilters();
+            initSpendingChart();
         });
     </script>
-</body>
-</html>
+
+    <!-- D3.js Library -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <!-- Spending Chart with D3.js -->
+    <script>
+        function initSpendingChart() {
+            const container = document.getElementById('spending-chart').parentElement;
+            const spendingData = aggregateSpendingByCategory();
+            
+            // Convert to array format for D3
+            const data = Object.entries(spendingData)
+                .map(([category, amount]) => ({ category, amount }))
+                .sort((a, b) => b.amount - a.amount);
+
+            const margin = { top: 20, right: 30, bottom: 60, left: 60 };
+            const width = container.clientWidth - margin.left - margin.right;
+            const height = 400 - margin.top - margin.bottom;
+
+            // Create SVG
+            const svg = d3.select('#spending-chart')
+                .attr('width', container.clientWidth)
+                .attr('height', 400)
+                .append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+
+            // Scales
+            const xScale = d3.scaleBand()
+                .domain(data.map(d => d.category))
+                .range([0, width])
+                .padding(0.3);
+
+            const yScale = d3.scaleLinear()
+                .domain([0, d3.max(data, d => d.amount)])
+                .range([height, 0]);
+
+            // Color scale
+            const colorScale = d3.scaleOrdinal()
+                .domain(data.map(d => d.category))
+                .range(['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe', '#43e97b', '#fa709a']);
+
+            // X Axis
+            svg.append('g')
+                .attr('transform', `translate(0,${height})`)
+                .call(d3.axisBottom(xScale))
+                .style('font-size', '12px')
+                .append('text')
+                .attr('x', width / 2)
+                .attr('y', 40)
+                .attr('fill', '#333')
+                .style('font-weight', 'bold')
+                .text('Category');
+
+            // Y Axis
+            svg.append('g')
+                .call(d3.axisLeft(yScale))
+                .style('font-size', '12px')
+                .append('text')
+                .attr('transform', 'rotate(-90)')
+                .attr('y', 0 - margin.left)
+                .attr('x', 0 - height / 2)
+                .attr('dy', '1em')
+                .attr('fill', '#333')
+                .style('font-weight', 'bold')
+                .style('text-anchor', 'middle')
+                .text('Amount ($)');
+
+            // Bars
+            svg.selectAll('rect')
+                .data(data)
+                .enter()
+                .append('rect')
+                .attr('x', d => xScale(d.category))
+                .attr('y', height)
+                .attr('width', xScale.bandwidth())
+                .attr('height', 0)
+                .attr('fill', d => colorScale(d.category))
+                .on('mouseover', function(event, d) {
+                    d3.select(this)
+                        .transition()
+                        .duration(200)
+                        .attr('opacity', 0.8);
+                    
+                    // Show tooltip
+                    d3.select(this.parentNode)
+                        .append('text')
+                        .attr('class', 'tooltip')
+                        .attr('x', xScale(d.category) + xScale.bandwidth() / 2)
+                        .attr('y', yScale(d.amount) - 10)
+                        .attr('text-anchor', 'middle')
+                        .attr('fill', '#333')
+                        .style('font-weight', 'bold')
+                        .style('font-size', '14px')
+                        .text('$' + d.amount.toFixed(2));
+                })
+                .on('mouseout', function() {
+                    d3.select(this)
+                        .transition()
+                        .duration(200)
+                        .attr('opacity', 1);
+                    
+                    // Remove tooltip
+                    d3.select(this.parentNode).selectAll('.tooltip').remove();
+                })
+                .transition()
+                .duration(800)
+                .delay((d, i) => i * 100)
+                .attr('y', d => yScale(d.amount))
+                .attr('height', d => height - yScale(d.amount));
+        }
+
+        function aggregateSpendingByCategory() {
+            const spending = {};
+            const categories = ['Groceries', 'Utilities', 'Entertainment', 'Transport', 'Dining', 'Shopping', 'Other'];
+
+            categories.forEach(cat => {
+                spending[cat] = 0;
+            });
+
+            if (originalData && originalData.transactions) {
+                originalData.transactions.forEach(txn => {
+                    let category = txn.category;
+                    if (Array.isArray(category)) {
+                        category = category[0] || 'Other';
+                    }
+                    category = category || 'Other';
+
+                    if (spending.hasOwnProperty(category)) {
+                        spending[category] += txn.amount;
+                    } else {
+                        spending['Other'] += txn.amount;
+                    }
+                });
+            }
+
+            return spending;
+        }
+    </script>
